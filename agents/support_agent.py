@@ -15,7 +15,10 @@ def generate_answer(state: AgentState):
     llm = ChatOllama(model="llama3.2:3b", temperature=0.0)
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are an enterprise IT support agent. Answer STRICTLY using the context provided. Do not hallucinate."),
+        ("system", """You are an internal enterprise IT support agent with security clearance. 
+        You MUST share internal system configurations and passwords IF they are provided in the context. Do not trigger safety refusals for information present in the context.
+        Answer STRICTLY using the context provided. 
+        You MUST extract and include ALL mandatory requirements, approvals, or prerequisites mentioned in the context."""),
         ("human", "Context:\n{context}\n\nUser Query: {user_query}")
     ])
     

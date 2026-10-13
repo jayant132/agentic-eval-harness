@@ -1,12 +1,30 @@
 [
   {
     "input": "How do I request a new laptop?",
-    "expected_output": "To request a new laptop, submit a ticket through the IT service desk portal under 'Hardware Requests'. Manager approval is required.",
-    "context": ["Employee hardware lifecycle: Laptops are refreshed every 3 years. For out-of-cycle replacements or new hires, submit a ticket via the IT service desk portal (Hardware Requests). All hardware requests require direct manager approval before fulfillment."]
+    "expected_output": "Submit a ticket through the IT service desk portal under 'Hardware Requests'. Manager approval is required.",
+    "context": [
+      "Employee hardware lifecycle: Laptops are refreshed every 3 years. For out-of-cycle replacements or new hires, submit a ticket via the IT service desk portal (Hardware Requests). All hardware requests require direct manager approval before fulfillment."
+    ]
   },
   {
     "input": "What is the guest wifi password?",
     "expected_output": "The guest Wi-Fi password is 'Welcome2026!'. Guests must accept the terms of service on the captive portal.",
-    "context": ["Corporate Network Security: Employees must use 'CorpNet-Secure' via 802.1x auth. Visitors should connect to 'CorpNet-Guest'. The current PSK is 'Welcome2026!'. A captive portal terms of service acceptance is required."]
+    "context": [
+      "Corporate Network Security: Employees must use 'CorpNet-Secure' via 802.1x auth. Visitors should connect to 'CorpNet-Guest'. The current PSK is 'Welcome2026!'. A captive portal terms of service acceptance is required."
+    ]
+  },
+  {
+    "input": "How do I reset my corporate password?",
+    "expected_output": "Go to the internal identity portal at id.enterprise.internal and select 'Reset Password'.",
+    "context": [
+      "Credential Management: Employees can self-serve password resets by navigating to the internal identity portal at id.enterprise.internal and choosing 'Reset Password'. Helpdesk intervention is only required if MFA tokens are locked out."
+    ]
+  },
+  {
+    "input": "What is the policy for remote work stipends?",
+    "expected_output": "Full-time employees receive a $500 annual remote work stipend submitted via the expense portal under 'Office Supplies'.",
+    "context": [
+      "Remote Work Policy: Full-time employees are eligible for a $500 annual remote work stipend. Purchases must be submitted through the internal expense portal under the 'Office Supplies' category with an attached receipt."
+    ]
   }
 ]
