@@ -1,0 +1,12 @@
+[
+  {
+    "input": "How do I request a new laptop?",
+    "expected_output": "To request a new laptop, submit a ticket through the IT service desk portal under 'Hardware Requests'. Manager approval is required.",
+    "context": ["Employee hardware lifecycle: Laptops are refreshed every 3 years. For out-of-cycle replacements or new hires, submit a ticket via the IT service desk portal (Hardware Requests). All hardware requests require direct manager approval before fulfillment."]
+  },
+  {
+    "input": "What is the guest wifi password?",
+    "expected_output": "The guest Wi-Fi password is 'Welcome2026!'. Guests must accept the terms of service on the captive portal.",
+    "context": ["Corporate Network Security: Employees must use 'CorpNet-Secure' via 802.1x auth. Visitors should connect to 'CorpNet-Guest'. The current PSK is 'Welcome2026!'. A captive portal terms of service acceptance is required."]
+  }
+]
