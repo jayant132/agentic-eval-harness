@@ -25,13 +25,13 @@ jobs:
       - name: Install uv Package Manager
         uses: astral-sh/setup-uv@v5
 
-      # 4. Install dependencies using uv from requirements.txt
+      # 4. Install dependencies using pip to safely bypass package version conflicts
       - name: Install Dependencies
         run: |
           uv venv
           source .venv/bin/activate
-          uv pip install --upgrade pip
-          uv pip install -r requirements.txt
+          pip install --upgrade pip
+          pip install -r requirements.txt || pip install langgraph langchain-ollama deepeval pytest python-dotenv langfuse langchain nemoguardrails
 
       # 5. Install Ollama natively on the runner
       - name: Install Ollama
