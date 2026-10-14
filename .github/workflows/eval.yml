@@ -50,8 +50,16 @@ jobs:
           ollama pull llama3.2:3b
 
       # 8. Run the Tiered Testing Suite (Smoke Tests + DeepEval LLM Evals)
+# 8. Run Layer 1 Smoke Tests in CI/CD
       - name: Run Tiered Testing Suite
         env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          source .venv/bin/activate
+          # Run Layer 1: Fast deterministic smoke tests & security guardrails
+          pytest tests/test_smoke.py -v        env:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
           LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
