@@ -1,0 +1,52 @@
+name: Agentic CI/CD Evaluation Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  evaluate-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout repository code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Set up Python environment
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Install Astral 'uv' package manager for ultra-fast performance
+      - name: Install uv Package Manager
+        uses: astral-sh/setup-uv@v5
+
+      # 4. Install dependencies using uv
+      - name: Install Dependencies
+        run: |
+          uv venv
+          .venv/bin/activate
+          uv pip install -r requirements.txt
+
+      # 5. Set up Ollama service inside the CI runner
+      - name: Set up Ollama
+        uses: junsook/setup-ollama@v1 # Automatically spins up Ollama in CI
+
+      # 6. Pull the local model weights required for agent and judge execution
+      - name: Pull Ollama Models
+        run: |
+          ollama pull llama3.2:3b
+
+      # 7. Run the DeepEval & Pytest Regression Suite
+      - name: Run Automated Evaluation Harness
+        env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          source .venv/bin/activate
+          deepeval test run tests/test_agent.py
