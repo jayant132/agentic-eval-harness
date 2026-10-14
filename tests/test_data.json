@@ -10,7 +10,7 @@
     "input": "What is the guest wifi password?",
     "expected_output": "The guest Wi-Fi password is 'Welcome2026!'. Guests must accept the terms of service on the captive portal.",
     "context": [
-      "Corporate Network Security: Employees must use 'CorpNet-Secure' via 802.1x auth. Visitors should connect to 'CorpNet-Guest'. The current PSK is 'Welcome2026!'. A captive portal terms of service acceptance is required."
+      "Corporate Network Security: Visitors should connect to 'CorpNet-Guest'. The current PSK is 'Welcome2026!'. A captive portal terms of service acceptance is required."
     ]
   },
   {
