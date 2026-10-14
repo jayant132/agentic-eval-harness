@@ -1,17 +1,21 @@
+import os
 from typing import TypedDict
+from dotenv import load_dotenv
 from langgraph.graph import StateGraph, START, END
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
+from langfuse.langchain import CallbackHandler
 
+load_dotenv()
+
+langfuse_handler = CallbackHandler()
 
 class AgentState(TypedDict):
     user_query: str
     context: str
     generation: str
 
-
 def generate_answer(state: AgentState):
-
     llm = ChatOllama(model="llama3.2:3b", temperature=0.0)
     
     prompt = ChatPromptTemplate.from_messages([
@@ -36,11 +40,16 @@ support_agent = workflow.compile()
 
 def run_agent(query: str, context: str) -> str:
     initial_state = {"user_query": query, "context": context}
-    result = support_agent.invoke(initial_state)
+    
+    result = support_agent.invoke(
+        initial_state, 
+        config={"callbacks": [langfuse_handler]}
+    )
     return result["generation"]
 
 if __name__ == "__main__":
-    print("Testing agent connection to local Ollama...")
+    print("Testing agent connection to local Ollama and Langfuse telemetry...")
     test_context = "To request a new laptop, submit a ticket through the IT service desk portal under 'Hardware Requests'."
     test_query = "How do I request a new laptop?"
     print(f"\nAgent Output: {run_agent(test_query, test_context)}")
+    print("\nTrace successfully sent to Langfuse dashboard!")

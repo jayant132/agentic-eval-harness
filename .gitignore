@@ -1,3 +1,6 @@
+# Environment variables
+.env
+
 # Virtual environment
 .venv/
 
@@ -5,6 +8,6 @@
 __pycache__/
 *.pyc
 
-# DeepEval cache
+# DeepEval and Pytest cache
 .deepeval/
 .pytest_cache/
