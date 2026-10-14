@@ -1,126 +1,112 @@
-# Agentic CI/CD Evaluation Pipeline (`agentic-eval-harness`)
+# Agentic CI/CD Evaluation & Observability Harness (`agentic-eval-harness`)
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph-orange.svg)](https://github.com/langchain-ai/langgraph)
-[![DeepEval](https://img.shields.io/badge/Testing-DeepEval-green.svg)](https://github.com/confident-ai/deepeval)
-[![Ollama](https://img.shields.io/badge/LLM-Ollama%20(Local)-purple.svg)](https://ollama.com/)
+[![DeepEval](https://img.shields.io/badge/Evaluation-DeepEval-green.svg)](https://github.com/confident-ai/deepeval)
+[![Langfuse](https://img.shields.io/badge/Observability-Langfuse-purple.svg)](https://langfuse.com/)
+[![Ollama](https://img.shields.io/badge/LLM-Ollama%20(Local)-informational.svg)](https://ollama.com/)
 [![uv](https://img.shields.io/badge/Package%20Manager-uv-blueviolet.svg)](https://github.com/astral-sh/uv)
 
-A production-grade, zero-cost LLMOps evaluation framework designed to treat agentic prompts and workflows like compiled code. This pipeline runs automated regression testing against a **Golden Dataset** using local LLM-as-a-Judge architecture, preventing hallucinations and breaking changes from merging into production.
+A production-grade, privacy-first **LLMOps framework** designed to treat agentic AI prompts, workflows, and tools like compiled code. This repository bridges the gap between prototype AI and production reliability by automating pre-merge regression testing and real-time runtime observability.
 
 ---
 
-## 🏗️ Architecture & System Design
+## 🏗️ System Architecture & Workflow
 
-In enterprise AI engineering, updating an agent's system prompt or underlying tool graph without automated evaluation introduces silent regressions. This repository solves that problem by embedding quality gates directly into the development lifecycle.
+In enterprise AI engineering, updating an agent's system prompt or underlying tool graph without automated evaluation introduces silent regressions. This project implements a **dual-layer MLOps architecture**: offline CI/CD quality gates and online distributed tracing.
 
-```text
-[ Developer PR ] 
-       │
-       ▼
-[ GitHub Actions CI/CD Runner ]
-       │
-       ├─► 1. LangGraph Support Agent (Executes Query + Context using Llama 3.2:3b)
-       │
-       ├─► 2. Golden Dataset (Loaded from test_data.json)
-       │
-       └─► 3. Custom DeepEval Judge (Grades actual output vs. expected output via Ollama)
-              │
-              ├─► Hallucination Metric (Threshold: 0.3)
-              └─► Answer Relevancy Metric (Threshold: 0.5)
-                     │
-                     ▼
-          [ Pass / Block Merge Decision ]
+```mermaid
+graph TD
+    %% Styling
+    classDef dev fill:#1f2937,stroke:#3b82f6,stroke-width:2px,color:#fff;
+    classDef cicd fill:#065f46,stroke:#10b981,stroke-width:2px,color:#fff;
+    classDef prod fill:#1e1b4b,stroke:#8b5cf6,stroke-width:2px,color:#fff;
 
-```
+    Developer([Developer Open PR]) -->|Triggers| CI[GitHub Actions CI/CD Runner]:::cicd
+    
+    sub_Evaluation["Pre-Merge Evaluation Pipeline (CI/CD)"]
+    CI -->|1. Loads Ground Truth| Golden[Golden Dataset: test_data.json]:::dev
+    CI -->|2. Executes Agent| Agent[LangGraph Support Agent: Llama 3.2:3b]:::dev
+    CI -->|3. Grades Output| Judge[Custom DeepEval Judge via Ollama]:::dev
+    
+    Judge -->|Hallucination & Relevancy Checks| Gate{Pass Threshold >= 0.7?}:::cicd
+    Gate -->|No: Blocks Merge| Fail([Block PR & Report Regression])::cicd
+    Gate -->|Yes: Clears Quality Gate| Success([Allow Merge to Main])::cicd
 
----
+    sub_Observability["Runtime Production Telemetry"]
+    ProductionUser([End User Request]) --> ProdAgent[LangGraph Agent]:::prod
+    ProdAgent -->|OpenTelemetry Callbacks| Langfuse[(Langfuse Cloud Dashboard)]:::prod
+    Langfuse -->|Monitors Latency, Tokens & Traces| Analytics([Live Telemetry & Cost Tracking])::prod
+🛠️ Production Tech Stack
+Orchestration: LangGraph for managing stateful agent loops and context flow.
 
-## 🚀 Tech Stack
+Local Execution & Judge: Ollama running llama3.2:3b for zero-cost, data-private inference.
 
-* **Orchestration:** LangGraph (Stateful, production-grade agent workflows).
-* **Local Execution:** Ollama running `llama3.2:3b` for zero cloud dependency and data privacy.
-* **Evaluation Framework:** DeepEval (Custom base class wrapper routing evaluation prompts locally).
-* **Testing Harness:** Pytest parameterizing multi-turn and single-turn golden datasets.
-* **Package Management:** `uv` by Astral for lightning-fast environment provisioning.
+Evaluation Framework: DeepEval utilizing custom model wrappers to run LLM-as-a-Judge metrics offline.
 
----
+Testing Harness: Pytest parameterizing regression suites against structured golden datasets.
 
-## 📂 Project Structure
+Runtime Observability: Langfuse capturing OpenTelemetry traces, token usage, and latencies.
 
-```text
+Infrastructure Management: Astral uv for lightning-fast dependency resolution and virtual environments.
+
+📂 Project Structure
+Plaintext
 agentic-eval-harness/
 ├── agents/
 │   ├── __init__.py
-│   └── support_agent.py      # LangGraph stateful IT support agent
+│   └── support_agent.py      # LangGraph stateful IT agent + Langfuse tracing
 ├── tests/
 │   ├── __init__.py
-│   ├── test_data.json        # Golden dataset (Ground truths & contexts)
-│   ├── custom_judge.py       # Custom DeepEval runner hooked to local Ollama
-│   └── test_agent.py         # Pytest test harness orchestrating metrics
+│   ├── test_data.json        # Golden dataset (Inputs, Contexts, Expected Outputs)
+│   ├── custom_judge.py       # Custom DeepEval base LLM routing to Ollama JSON mode
+│   └── test_agent.py         # Pytest test suite enforcing hallucination/relevancy thresholds
 ├── .github/
 │   └── workflows/
-│       └── eval.yml          # Automated CI/CD workflow pipeline
+│       └── eval.yml          # Automated GitHub Actions CI/CD pipeline
+├── .env                      # Secure runtime keys (git-ignored)
 ├── pyproject.toml
 ├── requirements.txt
 └── README.md
+🚀 Quickstart & Local Installation
+Prerequisites
+Ensure Ollama is installed and running locally:
 
-```
-
----
-
-## 🛠️ Getting Started Locally
-
-### Prerequisites
-
-* Ensure [Ollama](https://ollama.com/) is installed and running locally with the model pulled:
-```bash
+Bash
 ollama pull llama3.2:3b
+Create a free account on Langfuse to get your API keys.
 
-```
+Step-by-Step Setup
+Clone the repository:
 
-
-
-### Installation & Setup
-
-1. **Clone the repository:**
-```bash
-git clone [https://github.com/YOUR_USERNAME/agentic-eval-harness.git](https://github.com/YOUR_USERNAME/agentic-eval-harness.git)
+Bash
+git clone [https://github.com/jayant132/agentic-eval-harness.git](https://github.com/jayant132/agentic-eval-harness.git)
 cd agentic-eval-harness
+Initialize environment using uv:
 
-```
-
-
-2. **Initialize environment with `uv`:**
-```bash
+Bash
 uv venv
 source .venv/bin/activate
+Install dependencies:
 
-```
+Bash
+uv pip install langgraph langchain-ollama deepeval pytest python-dotenv langfuse langchain
+uv pip freeze > requirements.txt
+Configure Environment Secrets:
+Create a .env file in the root directory:
 
+Code snippet
+LANGFUSE_PUBLIC_KEY=lf-pk-your_public_key_here
+LANGFUSE_SECRET_KEY=lf-sk-your_secret_key_here
+LANGFUSE_HOST=[https://cloud.langfuse.com](https://cloud.langfuse.com)
+Run the Evaluation Test Harness:
 
-3. **Install dependencies:**
-```bash
-uv pip install langgraph langchain-ollama deepeval pytest
-
-```
-
-
-4. **Run the Evaluation Harness:**
-```bash
+Bash
 deepeval test run tests/test_agent.py
+📊 Sample Golden Dataset (test_data.json)
+To prevent regressions, the framework evaluates the agent against structured factual truths representing real-world enterprise edge cases:
 
-```
-
-
-
----
-
-## 📊 Sample Test Case Structure (`test_data.json`)
-
-The evaluation suite relies on a structured JSON ground-truth dataset representing enterprise IT support scenarios:
-
-```json
+JSON
 [
   {
     "input": "How do I request a new laptop?",
@@ -130,27 +116,12 @@ The evaluation suite relies on a structured JSON ground-truth dataset representi
     ]
   }
 ]
+💡 Key Engineering Takeaways for MNC Recruiter Evaluation
+Decoupled MLOps Architecture: Separates offline evaluation (catching bugs before deployment via CI/CD test gates) from online observability (tracking user interactions and telemetry in production).
 
-```
+Zero Data Leakage: Fully local evaluation execution ensures sensitive corporate documents and source code never leave internal hardware during testing.
 
----
+Strict Structured Output Handling: Overcomes the limitation of smaller local judge models by enforcing engine-level JSON formatting constraints to guarantee parsing reliability.
 
-## 💡 Engineering Takeaway for Recruiters
-
-* **Zero Data Leakage:** Fully containerized/local evaluation ensures sensitive enterprise documentation never leaves local memory during test runs.
-* **Deterministic Guardrails:** Bypasses loose conversational evaluation by enforcing strict API-level formatting and mathematical metric thresholds.
-* **CI/CD Integration Ready:** Easily translatable to cloud runners to block broken prompt deployments automatically.
-
----
-
-## 👨‍💻 Author
-
-Built with precision by an AI Engineer passionate about reliable, observable, and production-ready agentic systems.
-
-```
-
----
-
-<FollowUp label="Ready to add the GitHub Actions workflow file?" query="The README is set. Now give me the code for `.github/workflows/eval.yml` so we can complete the automation setup."/>
-
-```
+👨‍💻 Author
+Built and maintained by an AI Engineer focused on building robust, observable, and reliable enterprise-grade autonomous systems.
