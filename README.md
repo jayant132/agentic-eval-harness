@@ -7,33 +7,38 @@
 [![Ollama](https://img.shields.io/badge/LLM-Ollama%20(Local)-informational.svg)](https://ollama.com/)
 [![uv](https://img.shields.io/badge/Package%20Manager-uv-blueviolet.svg)](https://github.com/astral-sh/uv)
 
-A production-grade, privacy-first **LLMOps framework** designed to treat agentic AI prompts, workflows, and tools like compiled code. This repository bridges the gap between prototype AI and production reliability by automating pre-merge regression testing and real-time runtime observability.
+A production-grade, privacy-first **LLMOps framework** designed to treat agentic AI prompts, workflows, and tools like compiled code. This repository bridges the gap between prototype AI and enterprise reliability by implementing pre-execution security guardrails, a tiered testing architecture, and real-time runtime observability.
 
 ---
 
 ## 🏗️ System Architecture & Workflow
 
-In enterprise AI engineering, updating an agent's system prompt or underlying tool graph without automated evaluation introduces silent regressions. This project implements a **dual-layer MLOps architecture**: offline CI/CD quality gates and online distributed tracing.
+In enterprise AI engineering, updating an agent's system prompt or underlying tool graph without automated evaluation introduces silent regressions. This project implements a **dual-layer MLOps architecture**: pre-execution threat blocking, offline CI/CD quality gates, and online distributed tracing.
 
 ```mermaid
 graph TD
     classDef dev fill:#1f2937,stroke:#3b82f6,stroke-width:2px,color:#fff;
     classDef cicd fill:#065f46,stroke:#10b981,stroke-width:2px,color:#fff;
-    classDef prod fill:#1e1b4b,stroke:#8b5cf6,stroke-width:2px,color:#fff;
+    classDef sec fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff;
 
     Developer[Developer Open PR] -->|Triggers| CI[GitHub Actions CI/CD Runner]
     
-    CI -->|1. Loads Ground Truth| Golden[Golden Dataset: test_data.json]
-    CI -->|2. Executes Agent| Agent[LangGraph Support Agent: Llama 3.2:3b]
-    CI -->|3. Grades Output| Judge[Custom DeepEval Judge via Ollama]
-    
-    Judge -->|Hallucination & Relevancy Checks| Gate{Pass Threshold >= 0.7?}
-    Gate -->|No: Blocks Merge| Fail[Block PR & Report Regression]
-    Gate -->|Yes: Clears Quality Gate| Success[Allow Merge to Main]
+    subgraph Security Perimeter
+        CI --> Agent[LangGraph Agent with NeMo-Inspired Guardrail]:::sec
+        Agent -->|Prompt Injection / Jailbreak Detected?| Block[Short-Circuit & Block]:::sec
+    end
 
-    class Developer,CI cicd;
-    class Golden,Agent,Judge dev;
-    class Gate,Fail,Success cicd;
+    subgraph Tiered CI/CD Evaluation
+        Agent -->|Passed Security Check| Layer1[Layer 1: Deterministic Pytest Smoke Tests]:::cicd
+        Layer1 --> Layer2[Layer 2: DeepEval LLM-as-a-Judge Golden Dataset Evals]:::cicd
+    end
+
+    Layer2 --> Gate{All Quality Gates Pass?}
+    Gate -->|No| Fail[Block PR Merge]
+    Gate -->|Yes| Success[Allow Merge to Production]
+
+    class Developer,CI dev;
+    class Layer1,Layer2,Gate,Success cicd;
 
 ```
 
@@ -41,12 +46,12 @@ graph TD
 
 ## 🛠️ Production Tech Stack
 
-* **Orchestration:** **LangGraph** for managing stateful agent loops and context flow.
+* **Orchestration:** **LangGraph** for managing stateful agent loops, context passing, and node transitions.
+* **Security Perimeter:** Pre-execution validation nodes inspired by **NeMo Guardrails** to intercept prompt injections.
 * **Local Execution & Judge:** **Ollama** running `llama3.2:3b` for zero-cost, data-private inference.
-* **Evaluation Framework:** **DeepEval** utilizing custom model wrappers to run LLM-as-a-Judge metrics offline.
-* **Testing Harness:** **Pytest** parameterizing regression suites against structured golden datasets.
-* **Runtime Observability:** **Langfuse** capturing OpenTelemetry traces, token usage, and latencies.
-* **Infrastructure Management:** Astral **`uv`** for lightning-fast dependency resolution and virtual environments.
+* **Evaluation Framework:** **DeepEval** and **Pytest** running a **Tiered Testing Strategy** (Fast smoke checks + Deep LLM-as-a-Judge regression tests).
+* **Runtime Observability:** **Langfuse** capturing OpenTelemetry traces, token usage, and latencies across stateful runs.
+* **Infrastructure Management:** Astral **`uv`** for lightning-fast dependency resolution and virtual environment creation.
 
 ---
 
@@ -56,15 +61,16 @@ graph TD
 agentic-eval-harness/
 ├── agents/
 │   ├── __init__.py
-│   └── support_agent.py      # LangGraph stateful IT agent + Langfuse tracing
+│   └── support_agent.py      # LangGraph stateful agent + NeMo guardrails + Langfuse telemetry
 ├── tests/
 │   ├── __init__.py
 │   ├── test_data.json        # Golden dataset (Inputs, Contexts, Expected Outputs)
 │   ├── custom_judge.py       # Custom DeepEval base LLM routing to Ollama JSON mode
-│   └── test_agent.py         # Pytest test suite enforcing hallucination/relevancy thresholds
+│   ├── test_smoke.py         # LAYER 1: Fast deterministic Python assertions & guardrail checks
+│   └── test_eval.py          # LAYER 2: Deep semantic LLM-as-a-Judge hallucination/relevancy evals
 ├── .github/
 │   └── workflows/
-│       └── eval.yml          # Automated GitHub Actions CI/CD pipeline
+│       └── eval.yml          # Automated GitHub Actions CI/CD pipeline running tiered tests
 ├── .env                      # Secure runtime keys (git-ignored)
 ├── pyproject.toml
 ├── requirements.txt
@@ -107,7 +113,7 @@ source .venv/bin/activate
 
 3. **Install dependencies:**
 ```bash
-uv pip install langgraph langchain-ollama deepeval pytest python-dotenv langfuse langchain
+uv pip install langgraph langchain-ollama deepeval pytest python-dotenv langfuse langchain nemoguardrails
 uv pip freeze > requirements.txt
 
 ```
@@ -123,43 +129,28 @@ LANGFUSE_HOST=[https://cloud.langfuse.com](https://cloud.langfuse.com)
 ```
 
 
-5. **Run the Evaluation Test Harness:**
+5. **Run the Tiered Testing Suite Locally:**
 ```bash
-deepeval test run tests/test_agent.py
+# Run Layer 1: Fast Smoke & Security Tests
+pytest tests/test_smoke.py -v
+
+# Run Layer 2: Deep Semantic Evaluation Harness
+deepeval test run tests/test_eval.py
 
 ```
 
 
-
----
-
-## 📊 Sample Golden Dataset (`test_data.json`)
-
-To prevent regressions, the framework evaluates the agent against structured factual truths representing real-world enterprise edge cases:
-
-```json
-[
-  {
-    "input": "How do I request a new laptop?",
-    "expected_output": "Submit a ticket through the IT service desk portal under 'Hardware Requests'. Manager approval is required.",
-    "context": [
-      "Employee hardware lifecycle: Laptops are refreshed every 3 years. For out-of-cycle replacements or new hires, submit a ticket via the IT service desk portal (Hardware Requests). All hardware requests require direct manager approval before fulfillment."
-    ]
-  }
-]
-
-```
 
 ---
 
 ## 💡 Key Engineering Takeaways for MNC Recruiter Evaluation
 
-* **Decoupled MLOps Architecture:** Separates *offline evaluation* (catching bugs before deployment via CI/CD test gates) from *online observability* (tracking user interactions and telemetry in production).
-* **Zero Data Leakage:** Fully local evaluation execution ensures sensitive corporate documents and source code never leave internal hardware during testing.
-* **Strict Structured Output Handling:** Overcomes the limitation of smaller local judge models by enforcing engine-level JSON formatting constraints to guarantee parsing reliability.
+* **Tiered Testing Strategy:** Combines fast programmatic smoke checks (`test_smoke.py`) for instantaneous PR feedback with deep semantic LLM-as-a-Judge evaluations (`test_eval.py`) to prevent behavioral regressions.
+* **Pre-Execution Security Perimeter:** Implements a threat-blocking node inspired by *NeMo Guardrails* inside LangGraph to short-circuit malicious inputs before incurring LLM compute costs.
+* **Complete Air-Gapped Privacy & $0 Cost:** Local model execution via Ollama ensures zero third-party API token expenses and guarantees sensitive documentation never leaves internal hardware during testing.
 
 ---
 
 ## 👨‍💻 Author
 
-Built and maintained by an AI Engineer focused on building robust, observable, and reliable enterprise-grade autonomous systems.
+Built and maintained by an AI Engineer focused on building robust, secure, observable, and reliable enterprise-grade autonomous systems.
