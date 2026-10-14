@@ -57,3 +57,14 @@ jobs:
         run: |
           source .venv/bin/activate
           deepeval test run tests/test_agent.py
+          
+      - name: Run Tiered Testing Suite (Smoke Tests + LLM Evals)
+        env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          source .venv/bin/activate
+          # Run fast smoke tests first, then deep eval harness
+          pytest tests/test_smoke.py
+          deepeval test run tests/test_eval.py

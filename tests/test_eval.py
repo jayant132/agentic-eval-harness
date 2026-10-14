@@ -10,12 +10,13 @@ def load_goldens():
     with open("tests/test_data.json", "r") as f:
         return json.load(f)
 
-local_mistral = LocalOllamaJudge(model_name="llama3.2:3b")
+local_judge = LocalOllamaJudge(model_name="llama3.2:3b")
 
-hallucination_metric = HallucinationMetric(threshold=0.3, model=local_mistral)
-relevancy_metric = AnswerRelevancyMetric(threshold=0.5, model=local_mistral)
+hallucination_metric = HallucinationMetric(threshold=0.3, model=local_judge)
+relevancy_metric = AnswerRelevancyMetric(threshold=0.5, model=local_judge)
+
 @pytest.mark.parametrize("golden", load_goldens())
-def test_agent_responses(golden):
+def test_deep_semantic_evaluation(golden):
     actual_output = run_agent(
         query=golden["input"], 
         context=golden["context"][0] 
@@ -25,8 +26,8 @@ def test_agent_responses(golden):
         input=golden["input"],
         actual_output=actual_output,
         expected_output=golden["expected_output"],
-        context=golden["context"],             
-        retrieval_context=golden["context"]    
+        context=golden["context"],
+        retrieval_context=golden["context"]
     )
     
     assert_test(test_case, [hallucination_metric, relevancy_metric])
