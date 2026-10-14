@@ -11,37 +11,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository code
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 2. Set up Python environment
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # 3. Install Astral 'uv' package manager for ultra-fast performance
       - name: Install uv Package Manager
         uses: astral-sh/setup-uv@v5
 
+      # 4. Install dependencies using uv from requirements.txt
       - name: Install Dependencies
         run: |
           uv venv
           source .venv/bin/activate
           uv pip install --upgrade pip
-          uv pip install -r requirements.txt || uv pip install --system -r requirements.txt
+          uv pip install -r requirements.txt
 
+      # 5. Install Ollama natively on the runner
       - name: Install Ollama
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
 
+      # 6. Start the Ollama server in the background & wait for it to spin up
       - name: Start Ollama Server
         run: |
           ollama serve &
           sleep 5
 
+      # 7. Pull the model weights required for agent and judge execution
       - name: Pull Ollama Models
         run: |
           ollama pull llama3.2:3b
 
+      # 8. Run the Tiered Testing Suite (Smoke Tests + DeepEval LLM Evals)
       - name: Run Tiered Testing Suite
         env:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
