@@ -1,8 +1,3 @@
-Here is the corrected, error-free `README.md`. The Mermaid diagram syntax has been updated to use stable class assignment blocks so it will render cleanly and natively on GitHub without any parse errors.
-
-Copy and paste this directly into your `README.md` file:
-
-```markdown
 # Agentic CI/CD Evaluation & Observability Harness (`agentic-eval-harness`)
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
