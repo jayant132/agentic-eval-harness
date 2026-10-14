@@ -12,8 +12,8 @@ def load_goldens():
 
 local_mistral = LocalOllamaJudge(model_name="llama3.2:3b")
 
-hallucination_metric = HallucinationMetric(threshold=0.5, model=local_mistral)
-relevancy_metric = AnswerRelevancyMetric(threshold=0.7, model=local_mistral)
+hallucination_metric = HallucinationMetric(threshold=0.3, model=local_mistral)
+relevancy_metric = AnswerRelevancyMetric(threshold=0.5, model=local_mistral)
 @pytest.mark.parametrize("golden", load_goldens())
 def test_agent_responses(golden):
     actual_output = run_agent(

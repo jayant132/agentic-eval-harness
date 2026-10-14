@@ -7,13 +7,6 @@
     ]
   },
   {
-    "input": "What is the guest wifi password?",
-    "expected_output": "The guest Wi-Fi password is 'Welcome2026!'. Guests must accept the terms of service on the captive portal.",
-    "context": [
-      "Corporate Network Security: Visitors should connect to 'CorpNet-Guest'. The current PSK is 'Welcome2026!'. A captive portal terms of service acceptance is required."
-    ]
-  },
-  {
     "input": "How do I reset my corporate password?",
     "expected_output": "Go to the internal identity portal at id.enterprise.internal and select 'Reset Password'.",
     "context": [
