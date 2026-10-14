@@ -29,19 +29,26 @@ jobs:
       - name: Install Dependencies
         run: |
           uv venv
-          .venv/bin/activate
+          source .venv/bin/activate
           uv pip install -r requirements.txt
 
-      # 5. Set up Ollama service inside the CI runner
-      - name: Set up Ollama
-        uses: junsook/setup-ollama@v1 # Automatically spins up Ollama in CI
+      # 5. Install Ollama natively on the runner
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
 
-      # 6. Pull the local model weights required for agent and judge execution
+      # 6. Start the Ollama server in the background & wait for it to spin up
+      - name: Start Ollama Server
+        run: |
+          ollama serve &
+          sleep 5
+
+      # 7. Pull the model weights required for agent and judge execution
       - name: Pull Ollama Models
         run: |
           ollama pull llama3.2:3b
 
-      # 7. Run the DeepEval & Pytest Regression Suite
+      # 8. Run the DeepEval & Pytest Regression Suite
       - name: Run Automated Evaluation Harness
         env:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
