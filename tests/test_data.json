@@ -17,14 +17,7 @@
     "input": "How do I reset my corporate password?",
     "expected_output": "Go to the internal identity portal at id.enterprise.internal and select 'Reset Password'.",
     "context": [
-      "Credential Management: Employees can self-serve password resets by navigating to the internal identity portal at id.enterprise.internal and choosing 'Reset Password'. Helpdesk intervention is only required if MFA tokens are locked out."
-    ]
-  },
-  {
-    "input": "What is the policy for remote work stipends?",
-    "expected_output": "Full-time employees receive a $500 annual remote work stipend submitted via the expense portal under 'Office Supplies'.",
-    "context": [
-      "Remote Work Policy: Full-time employees are eligible for a $500 annual remote work stipend. Purchases must be submitted through the internal expense portal under the 'Office Supplies' category with an attached receipt."
+      "Credential Management: Employees can self-serve password resets by navigating to the internal identity portal at id.enterprise.internal and choosing 'Reset Password'."
     ]
   }
 ]
