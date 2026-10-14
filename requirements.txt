@@ -9,7 +9,7 @@ attrs==26.1.0
 backoff==2.2.1
 certifi==2026.7.22
 charset-normalizer==3.5.2
-click==8.5.0
+click==8.3.3
 dataclasses-json==0.6.7
 deepeval==4.2.8
 distro==1.9.0
